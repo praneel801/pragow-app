@@ -1,0 +1,5 @@
+{
+  "project_info": {"project_number": "874099393936","project_id": "pragow","storage_bucket": "pragow.firebasestorage.app"},
+  "client": [{"client_info": {"mobilesdk_app_id": "1:874099393936:android:c60aafc28a947da9219f15","android_client_info": {"package_name": "com.pragow.app"}},"oauth_client": [],"api_key": [{"current_key": "AIzaSyBbNELwr6gnjAhrVoccaQ7mWIEMYPCy10A"}],"services": {"appinvite_service": {"other_platform_oauth_client": []}}}],
+  "configuration_version": "1"
+}
