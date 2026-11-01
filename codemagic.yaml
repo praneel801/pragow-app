@@ -1,72 +1,23 @@
 workflows:
   android-workflow:
-    name: PRaGoW Android Build
-    max_build_duration: 60
-    instance_type: mac_mini_m2
+    name: PRaGoW Android Fixed
     environment:
       flutter: stable
-      xcode: latest
-      cocoapods: default
-      groups:
-        - google_play
     scripts:
-      - name: Fix project structure
+      - name: Fix structure
         script: |
-          echo "Checking project structure..."
-          ls -la
-          
-          # Create lib folder if main.dart is in root
-          if [ ! -f "lib/main.dart" ]; then
-            mkdir -p lib
-            if [ -f "main.dart" ]; then
-              echo "Moving main.dart to lib/main.dart"
-              cp main.dart lib/main.dart
-            fi
-            # Also check SINGLE_FILE_main.dart
-            if [ ! -f "lib/main.dart" ] && [ -f "SINGLE_FILE_main.dart" ]; then
-              cp SINGLE_FILE_main.dart lib/main.dart
-            fi
-          fi
-          
-          # Create android folder if not exists
-          if [ ! -d "android" ]; then
-            echo "Creating Flutter Android project..."
-            flutter create --platforms=android --project-name pragow --org com.praneel.pragow .
-            # Restore our main.dart after create overwrites
-            if [ -f "main.dart" ]; then
-              cp main.dart lib/main.dart
-            fi
-          fi
-          
-          # Copy google-services.json
-          if [ -f "google-services.json" ]; then
-            echo "Copying google-services.json"
-            mkdir -p android/app
-            cp google-services.json android/app/google-services.json
-          fi
-          
-          cat lib/main.dart | head -20
-          
-      - name: Get Flutter packages
-        script: |
-          flutter pub get
-          
-      - name: Build AAB for Play Store
-        script: |
-          flutter build appbundle --release --no-tree-shake-icons
-          
-      - name: Build APK for testing
-        script: |
-          flutter build apk --release --no-tree-shake-icons
-          
+          mkdir -p lib
+          if [ -f "main.dart" ]; then cp main.dart lib/main.dart; fi
+          if [ ! -d "android" ]; then flutter create --platforms=android --project-name pragow --org com.praneel.pragow .; cp main.dart lib/main.dart || true; fi
+          if [ -f "google-services.json" ]; then mkdir -p android/app; cp google-services.json android/app/google-services.json; fi
+          # FIX SDK VERSION TO 34
+          sed -i 's/compileSdkVersion.*/compileSdkVersion 34/' android/app/build.gradle || true
+          sed -i 's/compileSdk .*/compileSdk 34/' android/app/build.gradle || true
+          sed -i 's/compileSdk.*/compileSdk 34/' android/app/build.gradle || true
+          grep -q "compileSdk" android/app/build.gradle || echo "android { compileSdk 34 }" >> android/app/build.gradle
+      - name: Get packages
+        script: flutter pub get
+      - name: Build APK only
+        script: flutter build apk --release --no-tree-shake-icons
     artifacts:
-      - build/**/outputs/**/*.aab
       - build/**/outputs/**/*.apk
-      - build/**/outputs/**/mapping.txt
-    publishing:
-      email:
-        recipients:
-          - praneelbhavya122@gmail.com
-        notify:
-          success: true
-          failure: true
