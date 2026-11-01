@@ -1,34 +1,37 @@
 workflows:
   android-workflow:
-    name: PRaGoW Fresh Build
+    name: PRaGoW Final APK
     environment:
       flutter: stable
       java: 17
     scripts:
-      - name: Clean old android
+      - name: Save original files
         script: |
-          rm -rf android
-          rm -rf build
-          rm -rf .dart_tool
-      - name: Create fresh project
-        script: |
-          flutter create --platforms=android --project-name pragow --org com.praneel.pragow --overwrite .
+          cp main.dart /tmp/main.dart || cp lib/main.dart /tmp/main.dart || true
+          cp pubspec.yaml /tmp/pubspec.yaml || true
+          cp google-services.json /tmp/google-services.json || true
           ls -la
-          cat lib/main.dart | head -20
-      - name: Restore main file
+      - name: Clean and create fresh
         script: |
-          if [ -f "main.dart" ]; then
-            cp main.dart lib/main.dart
-            echo "Restored main.dart to lib/main.dart"
-          fi
-          if [ -f "google-services.json" ]; then
-            cp google-services.json android/app/google-services.json
-            echo "Copied google-services.json"
-          fi
+          rm -rf android ios build .dart_tool
+          flutter create --platforms=android --project-name pragow --org com.praneel.pragow --overwrite .
+      - name: Restore project files
+        script: |
+          cp /tmp/main.dart lib/main.dart || cp /tmp/main.dart main.dart || true
+          cp /tmp/pubspec.yaml pubspec.yaml || true
+          mkdir -p android/app
+          cp /tmp/google-services.json android/app/google-services.json || true
+          cp google-services.json android/app/google-services.json || true
+          echo "=== Restored files ==="
+          ls -la lib/
           cat pubspec.yaml
       - name: Get packages
-        script: flutter pub get
+        script: |
+          flutter clean
+          flutter pub get
       - name: Build APK
-        script: flutter build apk --release --no-tree-shake-icons --verbose
+        script: |
+          flutter build apk --release --no-tree-shake-icons
     artifacts:
-      - build/**/outputs/**/*.apk
+      - build/app/outputs/flutter-apk/*.apk
+      - build/app/outputs/**/*.apk
